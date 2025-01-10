@@ -7,10 +7,18 @@
 #' @param d_usa State borders. See example
 #'
 #' @examples
+#' library(dplyr)
+#' library(tidyverse)
+#'
+#' ## shapefile with 435 rows, one for each CD
 #' cd_shp <- read_rds("data-out/districts_2020_alarm.rds") |>
 #'     filter(!state %in% c("AK", "HI"))
-#' st_shp <- cd_shp |> summarize(geometry = sf::st_union(geometry), .by = state)
-#' out <- make_hex_map(cd_shp, state = "CT", d_usa = st_shp)
+#'
+#' st_shp <- cd_shp |>
+#'     summarize(geometry = sf::st_union(geometry), .by = state)
+#'
+#' ## New Hampshire example
+#' out <- make_hex_map(cd_shp, state = "NH", d_usa = st_shp)
 #'
 make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
     d_state = dplyr::filter(d_2020, .data$state == .env$state) |>

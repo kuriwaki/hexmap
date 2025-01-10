@@ -17,9 +17,17 @@ make_hex_map(state, d_2020, d_usa, hex_per_district = 5)
 Main function. Calls \code{make_hex_grid} and \code{place_districts} internally.
 }
 \examples{
+library(dplyr)
+library(tidyverse)
+
+## shapefile with 435 rows, one for each CD
 cd_shp <- read_rds("data-out/districts_2020_alarm.rds") |>
     filter(!state \%in\% c("AK", "HI"))
-st_shp <- cd_shp |> summarize(geometry = sf::st_union(geometry), .by = state)
-out <- make_hex_map(cd_shp, state = "CT", d_usa = st_shp)
+
+st_shp <- cd_shp |>
+    summarize(geometry = sf::st_union(geometry), .by = state)
+
+## New Hampshire example
+out <- make_hex_map(cd_shp, state = "NH", d_usa = st_shp)
 
 }
