@@ -34,3 +34,6 @@ You can install the development version of hexmap from [GitHub](https://github.c
 devtools::install_github("CoryMcCartan/hexmap")
 ```
 
+## Hex maps
+
+The main function to use is `make_hex_map`. See the help page for an example.
