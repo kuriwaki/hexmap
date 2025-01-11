@@ -7,7 +7,6 @@
 #' @param d_usa State borders. See example
 #'
 #' @examples
-#' library(dplyr)
 #' library(tidyverse)
 #'
 #' ## shapefile with 435 rows, one for each CD
@@ -19,6 +18,9 @@
 #'
 #' ## New Hampshire example
 #' out <- make_hex_map(cd_shp, state = "NH", d_usa = st_shp)
+#'
+#' ## Visualize
+#' ggplot(out) + geom_sf() + theme_void()
 #'
 make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
     d_state = dplyr::filter(d_2020, .data$state == .env$state) |>

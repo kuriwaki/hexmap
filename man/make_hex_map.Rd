@@ -17,7 +17,6 @@ make_hex_map(state, d_2020, d_usa, hex_per_district = 5)
 Main function. Calls \code{make_hex_grid} and \code{place_districts} internally.
 }
 \examples{
-library(dplyr)
 library(tidyverse)
 
 ## shapefile with 435 rows, one for each CD
@@ -29,5 +28,8 @@ st_shp <- cd_shp |>
 
 ## New Hampshire example
 out <- make_hex_map(cd_shp, state = "NH", d_usa = st_shp)
+
+## Visualize
+ggplot(out) + geom_sf() + theme_void()
 
 }
