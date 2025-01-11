@@ -31,5 +31,4 @@ out <- make_hex_map(cd_shp, state = "NH", d_usa = st_shp)
 
 ## Visualize
 ggplot(out) + geom_sf() + theme_void()
-
 }

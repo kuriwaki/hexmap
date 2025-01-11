@@ -21,7 +21,7 @@
 #'
 #' ## Visualize
 #' ggplot(out) + geom_sf() + theme_void()
-#'
+#' @export
 make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
     d_state = dplyr::filter(d_2020, .data$state == .env$state) |>
         sf::st_drop_geometry() |>
@@ -50,6 +50,32 @@ make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
 }
 
 
+#' Partitions state geometry into hexagonal units based on CD geometries
+#'
+#' @details Usually called by `make_hex_map`
+#'
+#'  @examples
+#' # New Hampshire in 2005
+#' \dontrun{
+#' library(tidyverse)
+#' library(geomander)
+#'
+#' cd_geom <- geomander::get_lewis(state = "NH", congress = 109) |>
+#'     mutate(state = "NH", .before = 1) |>
+#'     st_make_valid() |>
+#'     pull(geometry)
+#'
+#' st_geom <- summarize(cd_use, geometry = st_union(geometry), .by = state) |>
+#'     pull(geometry)
+#'
+#' out <- make_hex_grid(shp = cd_geom, outline = st_geom)
+#'
+#' # Show output
+#' ggplot(out$hex) +
+#'     geom_sf() +
+#'     geom_point(data = out$distr, aes(x = X, y = Y))
+#' }
+#' @export
 make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
     shp = sf::st_transform(shp, 3857)
     outline = sf::st_transform(outline, 3857)
@@ -121,6 +147,8 @@ make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
 }
 
 
+#' Uses the Hungarian algorithm to group (hex) units into `n_distr` groups
+#' @param res Output of `make_hex_grid`
 place_districts = function(res, n_runs=50L,
                            max_bursts=300 + round(sqrt(res$n_distr)*25),
                            silent=FALSE) {
@@ -162,6 +190,9 @@ place_districts = function(res, n_runs=50L,
 }
 
 
+#' Hungarian algorithm
+#' @param res Called from `place_districts`
+#' @importFrom RcppHungarian HungarianSolver
 scorer_close = function(res) {
     m_coord_hex = sf::st_centroid(res$hex$geometry) |>
         sf::st_coordinates() |>
