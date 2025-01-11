@@ -36,7 +36,7 @@ make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
     }
 
     shp = d_2020$geometry[d_2020$state == state]
-    outline = d_usa$geometry[d_usa$STUSPS == state]
+    outline = d_usa$geometry[d_usa$state == state]
 
     cli::cli_h1(paste("Making map for", state))
     cli::cli_process_start("Making hexagonal grid")
@@ -75,6 +75,7 @@ make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
         base_area = median(as.numeric(sf::st_area(hex)))
         hex = sf::st_intersection(hex, outline) |>
             dplyr::filter(as.numeric(sf::st_area(.data$geometry)) / base_area >= 0.25)
+        stopifnot(nrow(hex) > 0)
 
         cuml_infl = cuml_infl * 1.1
     }
