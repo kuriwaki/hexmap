@@ -3,7 +3,7 @@ library(tidyverse)
 library(tigris)
 library(alarmdata)
 
-maps = map(state.abb, alarm_50state_map)
+maps = map(state.abb, alarm_50state_map, .progress = TRUE)
 names(maps) = state.abb
 
 d_usa = nation(year=2020)
@@ -41,9 +41,8 @@ ggplot(aes(fill=ndv / (ndv + nrv))) +
     ggredist::scale_fill_party_b(name="Baseline\nDem. Vote",
                                  limits=c(0.3, 0.7), na.value="black") +
     ggredist::theme_map() +
-    theme(legend.position=c(0.1, 0.75))
+    theme(legend.position.inside=c(0.1, 0.75))
 
 write_rds(d_2020, "data-out/districts_2020_alarm.rds", compress="xz")
 write_sf(d_2020, "data-out/districts_2020_alarm.shp")
-
 
