@@ -22,31 +22,34 @@
 #' ## Visualize
 #' ggplot(out) + geom_sf() + theme_void()
 #' @export
-make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
+make_hex_map = function(state, d_2020, d_usa,
+                        hex_per_district=5,
+                        iters=25L,
+                        assign = TRUE) {
+
     d_state = dplyr::filter(d_2020, .data$state == .env$state) |>
         sf::st_drop_geometry() |>
         dplyr::rename(district = cd_2020)
 
-    if (nrow(d_state) == 1) {
-        d_state = dplyr::filter(d_2020, .data$state == .env$state) |>
-            dplyr::select(state, district=cd_2020) |>
-            sf::st_transform(5070)
-        d_state$geom_label = geomander::st_circle_center(d_state)$geometry
-        return(d_state)
-    }
+
 
     shp = d_2020$geometry[d_2020$state == state]
     outline = d_usa$geometry[d_usa$state == state]
 
     cli::cli_h1(paste("Making map for", state))
+
     cli::cli_process_start("Making hexagonal grid")
-
     res = make_hex_grid(shp, outline, hex_per_district=hex_per_district)
-
     cli::cli_process_done()
 
-    place_districts(res) |>
-        dplyr::mutate(state = state, .before=.data$district)
+    if (assign) {
+        cli::cli_process_start("Assigning districts to grid")
+        place_districts(res, n_runs = iters) |>
+            dplyr::mutate(state = state, .before=.data$district)
+    } else {
+        res$hex |>
+            mutate(state = state, .before = 1)
+    }
 }
 
 
