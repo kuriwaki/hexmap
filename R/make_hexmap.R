@@ -31,8 +31,6 @@ make_hex_map = function(state, d_2020, d_usa,
         sf::st_drop_geometry() |>
         dplyr::rename(district = cd_2020)
 
-
-
     shp = d_2020$geometry[d_2020$state == state]
     outline = d_usa$geometry[d_usa$state == state]
 
@@ -44,11 +42,12 @@ make_hex_map = function(state, d_2020, d_usa,
 
     if (assign) {
         cli::cli_process_start("Assigning districts to grid")
-        place_districts(res, n_runs = iters) |>
+        res <- place_districts(res, n_runs = iters) |>
             dplyr::mutate(state = state, .before=.data$district)
+        cli::cli_process_done()
+        return(res)
     } else {
-        res$hex |>
-            mutate(state = state, .before = 1)
+        return(res)
     }
 }
 
@@ -82,7 +81,8 @@ make_hex_map = function(state, d_2020, d_usa,
 make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
     shp = sf::st_transform(shp, 3857)
     outline = sf::st_transform(outline, 3857)
-    # outline = outline - sf::st_centroid(outline) + sf::st_centroid(sf::st_union(shp))
+
+    # recenter shp to outline
     shp = shp - sf::st_centroid(sf::st_union(shp)) + sf::st_centroid(outline)
     sf::st_crs(outline) = 3857
     sf::st_crs(shp) = 3857
@@ -95,8 +95,9 @@ make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
     a_ratio = diff(bbox[c(2, 4)]) / diff(bbox[c(1, 3)])
     n_hex = round(length(shp) * hex_per_district * infl)
 
+    # initialize hex grid and intersect with outline
     hex = data.frame()
-    cuml_infl = 0.5
+    cuml_infl = 0.75
     base_area = NULL
     while (nrow(hex) <= n_hex) {
         n_dim = floor(sqrt(cuml_infl * n_hex * c(1/a_ratio, a_ratio)))
@@ -157,6 +158,13 @@ make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
 place_districts = function(res, n_runs=50L,
                            max_bursts=300 + round(sqrt(res$n_distr)*25),
                            silent=FALSE) {
+    if (res$n_distr == 1) {
+        out = res$hex |>
+            dplyr::mutate(district = 1) |>
+            dplyr::summarize(.by = district)
+        return(out)
+    }
+
     map = redist::redist_map(res$hex, pop=1, ndists=res$n_distr,
                              pop_tol=1.3 * res$n_distr^1.075 / nrow(res$hex),
                              adj=res$hex$adj)
