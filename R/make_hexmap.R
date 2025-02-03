@@ -79,8 +79,10 @@ make_hex_map = function(state, d_2020, d_usa, hex_per_district=5) {
 make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
     shp = sf::st_transform(shp, 3857)
     outline = sf::st_transform(outline, 3857)
-    outline = outline - sf::st_centroid(outline) + sf::st_centroid(sf::st_union(shp))
+    # outline = outline - sf::st_centroid(outline) + sf::st_centroid(sf::st_union(shp))
+    shp = shp - sf::st_centroid(sf::st_union(shp)) + sf::st_centroid(outline)
     sf::st_crs(outline) = 3857
+    sf::st_crs(shp) = 3857
 
     bbox = sf::st_bbox(shp)
     shp_area = as.numeric(sum(sf::st_area(sf::st_buffer(shp, 5e3))))
@@ -96,8 +98,8 @@ make_hex_grid = function(shp, outline, hex_per_district=5, infl=1.05) {
     while (nrow(hex) <= n_hex) {
         n_dim = floor(sqrt(cuml_infl * n_hex * c(1/a_ratio, a_ratio)))
 
-        hex = sf::st_make_grid(shp, n=n_dim, square=FALSE, flat_topped=TRUE)
-        hex = sf::st_filter(sf::st_sf(geometry=hex), shp)
+        hex = sf::st_make_grid(outline, n=n_dim, square=FALSE, flat_topped=TRUE)
+        hex = sf::st_filter(sf::st_sf(geometry=hex), outline)
         base_area = median(as.numeric(sf::st_area(hex)))
         hex = sf::st_intersection(hex, outline) |>
             dplyr::filter(as.numeric(sf::st_area(.data$geometry)) / base_area >= 0.25)
